@@ -1,0 +1,6 @@
+{
+  "name": "찾아드림 - 도안고 교내 분실물 플랫폼",
+  "description": "대전도안고등학교 2-10 교내 분실물 및 습득물 실시간 공유·반환 플랫폼 찾아드림",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

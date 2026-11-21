@@ -1,0 +1,221 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "A lost or found item post shared across students.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["lost", "found"],
+          "description": "Whether the item is lost or found."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["searching", "stored", "returned"],
+          "description": "Current status of the item."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["지갑", "가방", "전자기기", "의류", "학용품/체육복", "기타"],
+          "description": "Item category."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Short item name."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "Detailed description of the item."
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 450000,
+          "description": "Optional compressed image Data URL or local asset path."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Where the item was lost or found."
+        },
+        "dateTime": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "ISO local date-time string or empty string if unknown."
+        },
+        "storageLocation": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Current storage location for found items."
+        },
+        "contact": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional contact info or Instagram handle."
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Student ID or nickname of the author."
+        },
+        "authorDeviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Client device identifier for authorship."
+        },
+        "commentCount": {
+          "type": "number",
+          "description": "Number of comments in the subcollection."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": [
+        "type",
+        "status",
+        "category",
+        "title",
+        "description",
+        "location",
+        "dateTime",
+        "authorName",
+        "authorDeviceId",
+        "commentCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment or nested reply on a lost/found post.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Parent post document ID."
+        },
+        "parentId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Parent comment ID for replies, or empty string for top-level comments."
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Comment author student ID or nickname."
+        },
+        "authorDeviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Client device identifier for comment authorship."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Comment text."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": [
+        "postId",
+        "parentId",
+        "author",
+        "authorDeviceId",
+        "content",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "Bug reports and improvement requests submitted by students.",
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": ["오류 신고", "기능 추가", "개선 요청", "기타"],
+          "description": "Feedback category."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Short feedback title."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "Detailed feedback content."
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Author name or 익명."
+        },
+        "isAnonymous": {
+          "type": "boolean",
+          "description": "Whether submitted anonymously."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        }
+      },
+      "required": [
+        "category",
+        "title",
+        "content",
+        "authorName",
+        "isAnonymous",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Collection of shared lost and found item posts."
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Subcollection of comments and replies under each post."
+    },
+    "/feedbacks/{feedbackId}": {
+      "schema": { "$ref": "#/entities/Feedback" },
+      "description": "Collection of user improvement requests and bug reports."
+    }
+  }
+}

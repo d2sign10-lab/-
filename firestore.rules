@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll([
+          'type',
+          'status',
+          'category',
+          'title',
+          'description',
+          'location',
+          'dateTime',
+          'authorName',
+          'authorDeviceId',
+          'commentCount',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'type',
+          'status',
+          'category',
+          'title',
+          'description',
+          'imageUrl',
+          'location',
+          'dateTime',
+          'storageLocation',
+          'contact',
+          'authorName',
+          'authorDeviceId',
+          'commentCount',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.type is string && data.type in ['lost', 'found']
+        && data.status is string && data.status in ['searching', 'stored', 'returned']
+        && ((data.type == 'lost' && data.status in ['searching', 'returned']) ||
+            (data.type == 'found' && data.status in ['stored', 'returned']))
+        && data.category is string && data.category in ['지갑', '가방', '전자기기', '의류', '학용품/체육복', '기타']
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 80
+        && data.description is string && data.description.size() >= 1 && data.description.size() <= 1000
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 450000))
+        && data.location is string && data.location.size() >= 1 && data.location.size() <= 120
+        && data.dateTime is string && data.dateTime.size() <= 40
+        && (!('storageLocation' in data) || (data.storageLocation is string && data.storageLocation.size() <= 120))
+        && (!('contact' in data) || (data.contact is string && data.contact.size() <= 120))
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 40
+        && data.authorDeviceId is string && data.authorDeviceId.size() >= 1 && data.authorDeviceId.size() <= 64
+        && data.commentCount is int && data.commentCount >= 0 && data.commentCount <= 5000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidComment(data, postId) {
+      return data.keys().hasAll([
+          'postId',
+          'parentId',
+          'author',
+          'authorDeviceId',
+          'content',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'postId',
+          'parentId',
+          'author',
+          'authorDeviceId',
+          'content',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.postId is string && data.postId == postId
+        && data.parentId is string && (data.parentId == '' || isValidId(data.parentId))
+        && data.author is string && data.author.size() >= 1 && data.author.size() <= 40
+        && data.authorDeviceId is string && data.authorDeviceId.size() >= 1 && data.authorDeviceId.size() <= 64
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll([
+          'category',
+          'title',
+          'content',
+          'authorName',
+          'isAnonymous',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'category',
+          'title',
+          'content',
+          'authorName',
+          'isAnonymous',
+          'createdAt'
+        ])
+        && data.category is string && data.category in ['오류 신고', '기능 추가', '개선 요청', '기타']
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 100
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 1000
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 40
+        && data.isAnonymous is bool
+        && data.createdAt is timestamp;
+    }
+
+    // Connection check document (read-only)
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // Shared school lost & found posts
+    match /posts/{postId} {
+      allow get: if isValidId(postId);
+      allow list: if true;
+      allow create: if isValidId(postId)
+        && isValidPost(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(postId)
+        && isValidPost(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().type == existing().type
+        && incoming().authorDeviceId == existing().authorDeviceId
+        && (
+          // Action 1: Toggle status (분실중 <-> 찾기 완료 / 보관중 <-> 전달 완료)
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) ||
+          // Action 2: Sync commentCount when adding or deleting a comment (and its replies) in subcollection
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['commentCount', 'updatedAt']) &&
+            (incoming().commentCount == existing().commentCount + 1 ||
+             (incoming().commentCount >= 0 && incoming().commentCount < existing().commentCount))
+          )
+        );
+      allow delete: if isValidId(postId);
+
+      match /comments/{commentId} {
+        allow get: if isValidId(postId) && isValidId(commentId);
+        allow list: if isValidId(postId);
+        allow create: if isValidId(postId)
+          && isValidId(commentId)
+          && existsAfter(/databases/$(database)/documents/posts/$(postId))
+          && isValidComment(incoming(), postId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(postId)
+          && isValidId(commentId)
+          && exists(/databases/$(database)/documents/posts/$(postId))
+          && isValidComment(incoming(), postId)
+          && incoming().postId == existing().postId
+          && incoming().parentId == existing().parentId
+          && incoming().authorDeviceId == existing().authorDeviceId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['content', 'updatedAt']);
+        allow delete: if isValidId(postId) && isValidId(commentId);
+      }
+    }
+
+    // Shared improvement requests & bug reports
+    match /feedbacks/{feedbackId} {
+      allow get: if isValidId(feedbackId);
+      allow list: if true;
+      allow create: if isValidId(feedbackId)
+        && isValidFeedback(incoming())
+        && incoming().createdAt == request.time;
+    }
+  }
+}
