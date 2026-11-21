@@ -13,7 +13,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { CheckCircle2 } from 'lucide-react';
 
 const AppShell: React.FC = () => {
-  const { userProfile, setUserProfile, resetDemoData, toastMessage } = useLostFound();
+  const { userProfile, setUserProfile, toastMessage } = useLostFound();
 
   const [screen, setScreen] = useState<ScreenView>('feed');
   const [returnScreen, setReturnScreen] = useState<'feed' | 'list'>('feed');
@@ -137,7 +137,6 @@ const AppShell: React.FC = () => {
           onNavigateCreate={navigateToCreate}
           onNavigateFeedback={navigateToFeedback}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
-          onResetDemo={resetDemoData}
         />
 
         {/* Profile Edit Modal */}

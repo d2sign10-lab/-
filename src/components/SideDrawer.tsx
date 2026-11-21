@@ -6,7 +6,6 @@ import {
   Megaphone,
   PlusCircle,
   UserCheck,
-  RotateCcw,
   Edit3,
   Lightbulb,
 } from 'lucide-react';
@@ -22,7 +21,6 @@ interface SideDrawerProps {
   onNavigateCreate: () => void;
   onNavigateFeedback: () => void;
   onOpenProfileModal: () => void;
-  onResetDemo: () => void;
 }
 
 export const SideDrawer: React.FC<SideDrawerProps> = ({
@@ -35,7 +33,6 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
   onNavigateCreate,
   onNavigateFeedback,
   onOpenProfileModal,
-  onResetDemo,
 }) => {
   if (!isOpen) return null;
 
@@ -179,18 +176,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
           </div>
 
           {/* Footer Utilities */}
-          <div className="p-4 border-t border-slate-100 bg-slate-50/70 space-y-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                onResetDemo();
-                onClose();
-              }}
-              className="w-full min-h-[40px] px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600 hover:bg-slate-100 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              초기 데모 데이터 복원
-            </button>
+          <div className="p-4 border-t border-slate-100 bg-slate-50/70">
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
               <UserCheck className="w-3.5 h-3.5" />
               <span>도안고 2-10 교내 분실물 반환 서비스</span>

@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -82,7 +83,6 @@ interface LostFoundContextValue {
   updateComment: (postId: string, commentId: string, newContent: string) => Promise<void>;
   deleteComment: (postId: string, commentId: string) => Promise<void>;
   addFeedback: (input: CreateFeedbackInput) => Promise<void>;
-  resetDemoData: () => Promise<void>;
   toastMessage: string | null;
   showToast: (msg: string) => void;
 }
@@ -273,7 +273,99 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => unsubscribe();
   }, []);
 
-  // Seed initial demo posts once if Firestore /posts is completely empty
+  const migrateSeedStudentIds = useCallback(async () => {
+    for (const seedPost of [...INITIAL_POSTS].reverse()) {
+      const postRef = doc(db, 'posts', seedPost.id);
+      let postSnap;
+      try {
+        postSnap = await getDoc(postRef);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.GET, `posts/${seedPost.id}`);
+      }
+      if (!postSnap.exists()) continue;
+
+      const data = postSnap.data();
+      if (data.authorDeviceId !== 'seed-team') continue;
+
+      const needsPostUpdate =
+        data.authorName !== seedPost.authorName ||
+        (seedPost.contact !== undefined && data.contact !== seedPost.contact);
+
+      if (needsPostUpdate) {
+        const postPayload: Record<string, unknown> = {
+          type: data.type ?? seedPost.type,
+          status: data.status ?? seedPost.status,
+          category: data.category === '휴대폰' ? '전자기기' : (data.category ?? seedPost.category),
+          title: String(data.title ?? seedPost.title).slice(0, 80),
+          description: String(data.description ?? seedPost.description).slice(0, 1000),
+          location: String(data.location ?? seedPost.location).slice(0, 120),
+          dateTime: String(data.dateTime ?? seedPost.dateTime).slice(0, 40),
+          authorName: seedPost.authorName.slice(0, 40),
+          authorDeviceId: 'seed-team',
+          commentCount:
+            typeof data.commentCount === 'number' ? data.commentCount : seedPost.comments.length,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+        if (typeof data.imageUrl === 'string' && data.imageUrl) {
+          postPayload.imageUrl = data.imageUrl;
+        }
+        if (typeof data.storageLocation === 'string' && data.storageLocation) {
+          postPayload.storageLocation = data.storageLocation.slice(0, 120);
+        }
+        const nextContact = seedPost.contact ?? (typeof data.contact === 'string' ? data.contact : undefined);
+        if (nextContact) {
+          postPayload.contact = nextContact.slice(0, 120);
+        }
+
+        try {
+          await deleteDoc(postRef);
+          await setDoc(postRef, postPayload);
+        } catch (error) {
+          handleFirestoreError(error, OperationType.WRITE, `posts/${seedPost.id}`);
+        }
+      }
+
+      for (const seedComment of seedPost.comments) {
+        const commentRef = doc(db, 'posts', seedPost.id, 'comments', seedComment.id);
+        let commentSnap;
+        try {
+          commentSnap = await getDoc(commentRef);
+        } catch (error) {
+          handleFirestoreError(
+            error,
+            OperationType.GET,
+            `posts/${seedPost.id}/comments/${seedComment.id}`
+          );
+        }
+        if (!commentSnap.exists()) continue;
+
+        const cData = commentSnap.data();
+        if (cData.authorDeviceId === 'seed-team' && cData.author !== seedComment.author) {
+          try {
+            await deleteDoc(commentRef);
+            await setDoc(commentRef, {
+              postId: seedPost.id,
+              parentId: String(cData.parentId ?? (seedComment.parentId || '')),
+              author: seedComment.author.slice(0, 40),
+              authorDeviceId: 'seed-team',
+              content: String(cData.content ?? seedComment.content).slice(0, 500),
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          } catch (error) {
+            handleFirestoreError(
+              error,
+              OperationType.WRITE,
+              `posts/${seedPost.id}/comments/${seedComment.id}`
+            );
+          }
+        }
+      }
+    }
+  }, []);
+
+  // Seed initial demo posts once if Firestore /posts is completely empty, or migrate seed student IDs
   useEffect(() => {
     if (seedAttemptedRef.current) return;
     seedAttemptedRef.current = true;
@@ -283,6 +375,8 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const existingSnap = await getDocs(query(collection(db, 'posts'), limit(1)));
         if (existingSnap.empty) {
           await seedMissingInitialPosts();
+        } else {
+          await migrateSeedStudentIds();
         }
       } catch (error) {
         try {
@@ -295,7 +389,7 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
     })();
-  }, [seedMissingInitialPosts]);
+  }, [seedMissingInitialPosts, migrateSeedStudentIds]);
 
   // Subscribe to shared feedbacks collection
   useEffect(() => {
@@ -643,13 +737,6 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [userProfile.studentName, showToast]
   );
 
-  const resetDemoData = useCallback(async () => {
-    await seedMissingInitialPosts();
-    setUserProfileState({ studentName: '' });
-    localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify({ studentName: '' }));
-    showToast('기본 예시 게시글이 확인·복원되었습니다.');
-  }, [seedMissingInitialPosts, showToast]);
-
   const value: LostFoundContextValue = {
     posts,
     notices,
@@ -669,7 +756,6 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     updateComment,
     deleteComment,
     addFeedback,
-    resetDemoData,
     toastMessage,
     showToast,
   };
