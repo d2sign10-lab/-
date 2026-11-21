@@ -79,15 +79,6 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
     }
   };
 
-  const handleQuickCommentNav = () => {
-    const target = filteredPosts[0] || posts[0];
-    if (target) {
-      onSelectPost(target.id, true);
-    } else {
-      onGoToCreate();
-    }
-  };
-
   const getStatusText = (post: PostItem) => {
     if (post.status === 'returned') {
       return post.type === 'lost' ? '찾기 완료' : '전달 완료';
@@ -371,19 +362,9 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
         )}
       </div>
 
-      {/* 5. 우측 하단 플로팅 액션 버튼 (FAB) 3종 - 세로 배치 & 하단 배지 회피 */}
+      {/* 5. 우측 하단 플로팅 액션 버튼 (FAB) 2종 - 세로 배치 & 하단 배지 회피 */}
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pointer-events-none z-20 flex justify-end">
         <div className="flex flex-col items-center gap-2.5 pointer-events-auto">
-          <button
-            type="button"
-            onClick={handleQuickCommentNav}
-            aria-label="댓글 및 문의 바로가기"
-            title="댓글/문의 바로가기"
-            className="w-12 h-12 rounded-full bg-[#2B4080]/92 text-white shadow-lg border border-white/20 flex items-center justify-center hover:bg-[#1F2F61] active:scale-95 transition-all cursor-pointer"
-          >
-            <MessageCircle className="w-5 h-5" />
-          </button>
-
           <button
             type="button"
             onClick={handleShare}
