@@ -109,6 +109,7 @@ const AppShell: React.FC = () => {
               postId={selectedPostId}
               autoFocusComment={focusCommentOnDetail}
               onPostDeleted={handleBack}
+              onOpenProfileModal={() => setIsProfileModalOpen(true)}
             />
           )}
 
@@ -118,6 +119,7 @@ const AppShell: React.FC = () => {
                 setScreen('feed');
                 window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
               }}
+              onOpenProfileModal={() => setIsProfileModalOpen(true)}
             />
           )}
 

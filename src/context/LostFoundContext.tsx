@@ -37,7 +37,7 @@ import {
   UserProfile,
 } from '../types/lostFound';
 
-const STORAGE_PROFILE_KEY = 'doan_finddream_profile_v1';
+const STORAGE_PROFILE_KEY = 'doan_finddream_profile_v2';
 const STORAGE_DEVICE_ID_KEY = 'doan_finddream_device_id_v1';
 
 export interface CreateFeedbackInput {
@@ -138,7 +138,7 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const [deviceId] = useState<string>(getOrCreateDeviceId);
   const [userProfile, setUserProfileState] = useState<UserProfile>(() =>
-    loadFromStorage<UserProfile>(STORAGE_PROFILE_KEY, { studentName: '21015 김하늘' })
+    loadFromStorage<UserProfile>(STORAGE_PROFILE_KEY, { studentName: '' })
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const seedAttemptedRef = useRef(false);
@@ -645,9 +645,9 @@ export const LostFoundProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const resetDemoData = useCallback(async () => {
     await seedMissingInitialPosts();
-    setUserProfileState({ studentName: '21015 김하늘' });
-    localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify({ studentName: '21015 김하늘' }));
-    showToast('기본 예시 게시글 및 프로필이 복원되었습니다.');
+    setUserProfileState({ studentName: '' });
+    localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify({ studentName: '' }));
+    showToast('기본 예시 게시글이 확인·복원되었습니다.');
   }, [seedMissingInitialPosts, showToast]);
 
   const value: LostFoundContextValue = {

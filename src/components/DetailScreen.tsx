@@ -24,12 +24,14 @@ interface DetailScreenProps {
   postId: string;
   autoFocusComment?: boolean;
   onPostDeleted: () => void;
+  onOpenProfileModal?: () => void;
 }
 
 export const DetailScreen: React.FC<DetailScreenProps> = ({
   postId,
   autoFocusComment = false,
   onPostDeleted,
+  onOpenProfileModal,
 }) => {
   const {
     posts,
@@ -91,7 +93,7 @@ export const DetailScreen: React.FC<DetailScreenProps> = ({
   const isReturned = post.status === 'returned';
   const isAuthor =
     (post.authorDeviceId && post.authorDeviceId === deviceId) ||
-    post.authorName === userProfile.studentName;
+    (Boolean(userProfile.studentName.trim()) && post.authorName === userProfile.studentName);
 
   const handleSubmitMainComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -397,9 +399,19 @@ export const DetailScreen: React.FC<DetailScreenProps> = ({
                 {isLoadingComments ? (post.commentCount ?? 0) : activePostComments.length}
               </span>
             </h3>
-            <span className="text-[11px] text-slate-400">
-              작성 프로필: {userProfile.studentName}
-            </span>
+            {userProfile.studentName.trim() ? (
+              <span className="text-[11px] text-slate-400">
+                작성 프로필: {userProfile.studentName}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenProfileModal}
+                className="text-[11px] font-semibold text-[#2B4080] underline underline-offset-2 cursor-pointer"
+              >
+                학번·이름 입력하기
+              </button>
+            )}
           </div>
 
           {isLoadingComments && activePostComments.length === 0 ? (

@@ -78,7 +78,13 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
               <div className="bg-white/12 rounded-xl p-3.5 border border-white/15 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[11px] text-blue-100 mb-0.5">현재 작성자 프로필</p>
-                  <p className="text-sm font-bold text-white truncate">{studentName}</p>
+                  {studentName.trim() ? (
+                    <p className="text-sm font-bold text-white truncate">{studentName}</p>
+                  ) : (
+                    <p className="text-xs font-semibold text-blue-100/90 truncate">
+                      학번 · 이름을 입력해주세요
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -89,7 +95,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                   className="min-h-[36px] px-2.5 py-1.5 rounded-lg bg-[#FCD757] text-[#2B4080] text-xs font-bold flex items-center gap-1 hover:brightness-95 transition-all cursor-pointer shrink-0"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  변경
+                  {studentName.trim() ? '변경' : '입력'}
                 </button>
               </div>
             </div>

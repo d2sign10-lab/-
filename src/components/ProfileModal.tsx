@@ -83,7 +83,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 setValue(e.target.value);
                 if (error) setError('');
               }}
-              placeholder="예: 21015 김하늘"
+              placeholder="학번 및 이름을 입력해 주세요"
               maxLength={20}
               autoFocus
               className="w-full h-11 px-3.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:border-[#2B4080] focus:ring-2 focus:ring-[#2B4080]/15"

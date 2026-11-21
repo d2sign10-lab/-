@@ -151,7 +151,7 @@ export const FeedbackScreen: React.FC = () => {
             ) : (
               <>
                 <User className="w-3.5 h-3.5 text-[#2B4080]" />
-                표시: {userProfile.studentName}
+                표시: {userProfile.studentName.trim() || '익명 학생 (학번·이름 미입력)'}
               </>
             )}
           </span>

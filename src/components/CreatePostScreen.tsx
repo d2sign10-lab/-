@@ -6,9 +6,13 @@ import { getCurrentDateTimeLocalValue, readAndCompressImage } from '../utils/for
 
 interface CreatePostScreenProps {
   onSuccess: (createdPostId: string) => void;
+  onOpenProfileModal?: () => void;
 }
 
-export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onSuccess }) => {
+export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({
+  onSuccess,
+  onOpenProfileModal,
+}) => {
   const { addPost, userProfile } = useLostFound();
   const [type, setType] = useState<PostType>('lost');
   const [category, setCategory] = useState<ItemCategory | ''>('');
@@ -132,7 +136,18 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onSuccess })
       {/* 작성자 안내 */}
       <div className="flex items-center justify-between px-1 text-xs text-slate-500">
         <span>
-          작성자: <strong className="text-[#2B4080]">{userProfile.studentName}</strong>
+          작성자:{' '}
+          {userProfile.studentName.trim() ? (
+            <strong className="text-[#2B4080]">{userProfile.studentName}</strong>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenProfileModal}
+              className="font-bold text-[#2B4080] underline underline-offset-2 cursor-pointer"
+            >
+              학번·이름을 입력해 주세요
+            </button>
+          )}
         </span>
         <span>* 필수 입력 항목</span>
       </div>
