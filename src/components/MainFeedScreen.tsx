@@ -96,7 +96,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   };
 
   return (
-    <div className="relative pb-24">
+    <div className="relative pb-36">
       <div className="px-4 pt-4 space-y-3.5">
         {/* 1. 실시간 현황판 (Status Dashboard) */}
         <section
@@ -371,9 +371,9 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
         )}
       </div>
 
-      {/* 5. 우측 하단 플로팅 액션 버튼 (FAB) 3종 */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pointer-events-none z-20 flex justify-end">
-        <div className="flex items-center gap-2.5 pointer-events-auto">
+      {/* 5. 우측 하단 플로팅 액션 버튼 (FAB) 3종 - 세로 배치 & 하단 배지 회피 */}
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pointer-events-none z-20 flex justify-end">
+        <div className="flex flex-col items-center gap-2.5 pointer-events-auto">
           <button
             type="button"
             onClick={handleQuickCommentNav}
