@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, Menu } from 'lucide-react';
-import doanLogo from '../assets/images/doan_logo.png';
+import { DOAN_LOGO_DATA_URL } from '../assets/doanLogoData';
 
 interface TopAppBarProps {
   title?: string;
@@ -42,7 +42,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
           className="flex items-center gap-2.5 min-h-[44px] text-left rounded-lg hover:opacity-90 active:opacity-80 transition-opacity cursor-pointer"
         >
           <img
-            src={doanLogo}
+            src={DOAN_LOGO_DATA_URL}
             alt="대전도안고등학교 교표"
             className="w-9 h-9 object-contain shrink-0"
           />
